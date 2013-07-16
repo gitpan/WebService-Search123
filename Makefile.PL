@@ -9,7 +9,7 @@ use ExtUtils::MakeMaker 6.30;
 
 
 my %WriteMakefileArgs = (
-  "ABSTRACT" => "Interface to Search123 API.",
+  "ABSTRACT" => "Interface to the Search123 API.",
   "AUTHOR" => "Rob Brown <rob\@intelcompute.com>",
   "BUILD_REQUIRES" => {},
   "CONFIGURE_REQUIRES" => {
@@ -23,12 +23,13 @@ my %WriteMakefileArgs = (
     "Encode" => 0,
     "LWP::UserAgent" => 0,
     "Moose" => 0,
+    "Time::HiRes" => 0,
     "URI" => 0,
     "XML::LibXML" => 0,
     "namespace::autoclean" => 0
   },
   "TEST_REQUIRES" => {},
-  "VERSION" => "0.01",
+  "VERSION" => "0.02",
   "test" => {
     "TESTS" => "t/*.t"
   }
