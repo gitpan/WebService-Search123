@@ -1,9 +1,9 @@
 
 
 This archive contains the distribution WebService-Search123,
-version 0.05:
+version 0.06:
 
-  Interface to the Search123 API.
+  Interface to the Search123 XML API.
 
 This software is copyright (c) 2013 by Rob Brown.
 

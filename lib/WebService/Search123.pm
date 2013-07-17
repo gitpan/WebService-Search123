@@ -21,21 +21,23 @@ our $DEBUG => 0;
 
 =head1 NAME
 
-WebService::Search123 - Interface to the Search123 API.
+WebService::Search123 - Interface to the Search123 XML API.
 
 =head1 VERSION
 
-Version 0.05
+Version 0.06
 
 =cut
 
-our $VERSION = '0.05';
+our $VERSION = '0.06';
 
 $VERSION = eval $VERSION;
 
 =head1 SYNOPSIS
 
-The Search123 API interface.
+The Search123 XML API interface.
+
+Configure the call with C<new()>, supplying your account details, keywords, etc. then calling C<ads> to make the actual call.
 
  use WebService::Search123;
 
@@ -45,6 +47,11 @@ The Search123 API interface.
  {
     print $ad->title;
  }
+
+
+The list of ads returned with C<ads> is remembered, so only one call is made.
+
+If options are changed with the methods below, the list will be cleared and re-requested when calling C<ads> again.
 
 =cut
 
@@ -62,7 +69,7 @@ Interface to the Search123 platform for searching for ads.
      per_page => 5,
      client   => {
          ip   => '88.208.204.52',
-         ua   => 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_6_8) AppleWebKit/534.59.8 (KHTML, like Gecko) Version/5.1.9 Safari/534.59.8',
+         ua   => 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_6_8)',
          ref  => 'http://www.ultimatejujitsu.com/jujitsu-for-beginners/',
      },
  );
@@ -73,6 +80,12 @@ Interface to the Search123 platform for searching for ads.
  {
      print $ad->title . "\n";
  }
+
+ # change the keyword and get new ads
+
+ $s123->keyword( 'phone' );
+
+ foreach my $ad ( $s123->ads ) { ... }
 
 =cut
 
@@ -85,6 +98,8 @@ Interface to the Search123 platform for searching for ads.
  $s123->ua
 
 The internal L<LWP::UserAgent> to use.
+
+The default user-agent has an identifier string of 'WebService-Search123/$VERSION', where $VERSION is the version of this module.
 
 =cut
 
@@ -155,13 +170,15 @@ has _ads => (
 
 =head3 client
 
-A hash-reference containing details about your end user, including IP address, user-agent string, and the page they're on to view the ads.
+A hash-reference containing details about your end-user, including IP address, user-agent string, and the page they're on to view the ads.
 
 You should set this at construction time.
 
-Set and get methods are available as C<set_client()> and C<get_client>.
+Set and get methods are available as C<set_client()> and C<get_client()>.
 
  $s123->set_client( ip => '127.0.0.1' );
+
+ $s123->get_client( 'ua' );
 
 =cut
 
