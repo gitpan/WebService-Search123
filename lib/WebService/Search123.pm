@@ -6,7 +6,7 @@ use warnings;
 use Moose;
 use namespace::autoclean;
 
-use Encode;
+use Digest::MD5 qw(md5_hex);
 use LWP::UserAgent;
 use URI;
 use XML::LibXML;
@@ -25,11 +25,11 @@ WebService::Search123 - Interface to the Search123 API.
 
 =head1 VERSION
 
-Version 0.04
+Version 0.05
 
 =cut
 
-our $VERSION = '0.04';
+our $VERSION = '0.05';
 
 $VERSION = eval $VERSION;
 
@@ -122,7 +122,7 @@ has keyword => ( is => 'rw', isa => 'Str', trigger => \&_reset );
 
 =head3 per_page
 
-The number of results requested..
+The number of results requested.
 
  $s123->per_page( 5 );
 
@@ -140,15 +140,17 @@ See L<WebService::Search123::Ad> for details on these objects.
 
 =cut
 
-has _ads => ( is      => 'rw',
-              isa     => 'ArrayRef[WebService::Search123::Ad]',
-              lazy    => 1,
-              builder => '_build__ads',
-              clearer => '_clear__ads',
-              traits  => [ 'Array' ],
-              handles => { ads     => 'elements',
-                           num_ads => 'count',
-              },
+has _ads => (
+    is      => 'rw',
+    isa     => 'ArrayRef[WebService::Search123::Ad]',
+    lazy    => 1,
+    builder => '_build__ads',
+    clearer => '_clear__ads',
+    traits  => [ 'Array' ],
+    handles => {
+        ads     => 'elements',
+        num_ads => 'count',
+    },
 );
 
 =head3 client
@@ -163,13 +165,38 @@ Set and get methods are available as C<set_client()> and C<get_client>.
 
 =cut
 
-has client => ( is      => 'rw',
-                isa     => 'HashRef',
-                traits  => [ 'Hash' ],
-                handles => { get_client => 'get',
-                             set_client => 'set',
-                },
+has client => (
+    is      => 'rw',
+    isa     => 'HashRef',
+    traits  => [ 'Hash' ],
+    handles => {
+        get_client => 'get',
+        set_client => 'set',
+    },
 );
+
+=head3 session
+
+The session string/cookie to send with each request.
+
+You should store this in a cookie and re-use it for 30 minutes as per the Search123 documentation.
+
+ $s123->session
+
+=cut
+
+has session => ( is => 'rw', isa => 'Str', lazy => 1, builder => '_build_session', clearer => 'new_session', trigger => \&_reset );
+
+sub _build_session
+{
+    my $self = shift;
+
+    my $time = time;
+
+    my $session = md5_hex( $self->aid . $self->get_client( 'ua' ) . $self->get_client( 'ip' ) . $time ) . '.' . $time;
+
+    return $session;
+}
 
 has _type => ( is => 'rw', isa => 'Str', default => 'q', trigger => \&_reset );
 
@@ -213,6 +240,7 @@ sub _build__ads
     $uri->query_form( $uri->query_form, ip         => $self->get_client('ip')  ) if $self->get_client('ip');
     $uri->query_form( $uri->query_form, client_ref => $self->get_client('ref') ) if $self->get_client('ref');
     $uri->query_form( $uri->query_form, client_ua  => $self->get_client('ua')  ) if $self->get_client('ua');
+    $uri->query_form( $uri->query_form, usid       => $self->session           ) if $self->session;
 
     $self->_request( $uri );
 
