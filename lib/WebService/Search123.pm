@@ -25,11 +25,11 @@ WebService::Search123 - Interface to the Search123 API.
 
 =head1 VERSION
 
-Version 0.03
+Version 0.04
 
 =cut
 
-our $VERSION = '0.03';
+our $VERSION = '0.04';
 
 $VERSION = eval $VERSION;
 
@@ -57,12 +57,13 @@ Interface to the Search123 platform for searching for ads.
  $WebService::Search123::DEBUG = 1;
  
  my $s123 = WebService::Search123->new(
-     aid     => 10057,
-     keyword => 'ipod',
-     client  => {
-         ip  => '88.208.204.52',
-         ua  => 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_6_8) AppleWebKit/534.59.8 (KHTML, like Gecko) Version/5.1.9 Safari/534.59.8',
-         ref => 'http://www.ultimatejujitsu.com/jujitsu-for-beginners/',
+     aid      => 10057,
+     keyword  => 'ipod',
+     per_page => 5,
+     client   => {
+         ip   => '88.208.204.52',
+         ua   => 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_6_8) AppleWebKit/534.59.8 (KHTML, like Gecko) Version/5.1.9 Safari/534.59.8',
+         ref  => 'http://www.ultimatejujitsu.com/jujitsu-for-beginners/',
      },
  );
  
@@ -81,6 +82,8 @@ Interface to the Search123 platform for searching for ads.
 
 =head3 ua
 
+ $s123->ua
+
 The internal L<LWP::UserAgent> to use.
 
 =cut
@@ -89,33 +92,51 @@ has ua => ( is => 'rw', isa => 'LWP::UserAgent', default => sub { LWP::UserAgent
 
 =head3 secure
 
+ $s123->secure( 1 );
+
 Flag to indicate whether to use https or http (default).
 
 =cut
 
-has secure => ( is => 'rw', isa => 'Bool', default => 0 );
+has secure => ( is => 'rw', isa => 'Bool', default => 0, trigger => \&_reset );
 
 =head3 aid
+
+ $s123->aid( 99999 );
 
 Your account ID with Search123.
 
 =cut
 
-has aid     => ( is => 'rw', isa => 'Num', trigger => \&_reset );
+has aid => ( is => 'rw', isa => 'Num', trigger => \&_reset );
 
 =head3 keyword
 
 The user-supplied keywords to search against.
 
+ $s123->keyword( 'ipod' );
+
 =cut
 
 has keyword => ( is => 'rw', isa => 'Str', trigger => \&_reset );
+
+=head3 per_page
+
+The number of results requested..
+
+ $s123->per_page( 5 );
+
+=cut
+
+has per_page => ( is => 'rw', isa => 'Int', default => 20, trigger => \&_reset );
 
 =head3 ads
 
 The returned list of ad objects based on the criteria supplied.
 
 See L<WebService::Search123::Ad> for details on these objects.
+
+ foreach my $ad ( $s123->ads ) { ... }
 
 =cut
 
@@ -124,16 +145,27 @@ has _ads => ( is      => 'rw',
               lazy    => 1,
               builder => '_build__ads',
               clearer => '_clear__ads',
-              traits  => ['Array'],
+              traits  => [ 'Array' ],
               handles => { ads     => 'elements',
                            num_ads => 'count',
               },
 );
 
+=head3 client
+
+A hash-reference containing details about your end user, including IP address, user-agent string, and the page they're on to view the ads.
+
+You should set this at construction time.
+
+Set and get methods are available as C<set_client()> and C<get_client>.
+
+ $s123->set_client( ip => '127.0.0.1' );
+
+=cut
 
 has client => ( is      => 'rw',
                 isa     => 'HashRef',
-                traits  => ['Hash'],
+                traits  => [ 'Hash' ],
                 handles => { get_client => 'get',
                              set_client => 'set',
                 },
@@ -147,13 +179,15 @@ has _request => ( is => 'rw', isa => 'URI', clearer => '_clear__request' );
 
 has _response => ( is => 'rw', isa => 'HTTP::Response', clearer => '_clear__response' );
 
-=head3 took
+=head3 request_time
 
 How long the underlying HTTP API request took.
 
+ $s123->request_time;
+
 =cut
 
-has took => ( is => 'rw', isa => 'Num' );
+has request_time => ( is => 'rw', isa => 'Num' );
 
 sub _reset
 {
@@ -175,6 +209,7 @@ sub _build__ads
     $uri->query_form( $uri->query_form, query      => $self->keyword           ) if $self->keyword;
     $uri->query_form( $uri->query_form, type       => $self->_type             ) if $self->_type;
     $uri->query_form( $uri->query_form, uid        => $self->_uid              ) if $self->_uid;
+    $uri->query_form( $uri->query_form, size       => $self->per_page          ) if $self->per_page;
     $uri->query_form( $uri->query_form, ip         => $self->get_client('ip')  ) if $self->get_client('ip');
     $uri->query_form( $uri->query_form, client_ref => $self->get_client('ref') ) if $self->get_client('ref');
     $uri->query_form( $uri->query_form, client_ua  => $self->get_client('ua')  ) if $self->get_client('ua');
@@ -187,13 +222,11 @@ sub _build__ads
 
     $self->_response( $self->ua->get( $uri->as_string ) );
 
-    $self->took( gettimeofday() - $before );
+    $self->request_time( gettimeofday() - $before );
 
     warn $self->_response->code . ' ' . $self->_response->message if $DEBUG;
 
-    warn $self->took if $DEBUG;
-
-    warn $self->_response->content if $DEBUG;
+    warn $self->request_time . ' seconds' if $DEBUG;
 
     my @ads = ();
 
@@ -215,6 +248,8 @@ sub _build__ads
             push @ads, $ad;
         }
     }
+
+    warn scalar @ads . ' items' if $DEBUG;
 
     return \@ads;
 }
