@@ -29,7 +29,7 @@ Version 0.06
 
 =cut
 
-our $VERSION = '0.06';
+our $VERSION = '0.07';
 
 $VERSION = eval $VERSION;
 
@@ -289,6 +289,8 @@ sub _build__ads
                 _url          => $node->findvalue('REDIRECT_URL'),
                  display_url  => $node->findvalue('SITE_URL'),
             );
+
+            $ad->favicon_url( $node->findvalue('FAVICON_URL') ) if $node->findvalue('FAVICON_URL');
 
             push @ads, $ad;
         }

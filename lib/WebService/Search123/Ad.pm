@@ -16,6 +16,7 @@ has  description  => ( is => 'rw', isa => 'Str',                                
 has _url          => ( is => 'rw', isa => 'Str',                                           );
 has  url          => ( is => 'rw', isa => 'Maybe[URI]', lazy => 1, builder => '_build_url' );
 has  display_url  => ( is => 'rw', isa => 'Str',                                           );
+has  favicon_url  => ( is => 'rw', isa => 'Str',                                           );
 
 sub _build_url
 {
@@ -51,6 +52,12 @@ The L<URI> representing the URL to follow when clicking on this ad.
 Not necessarily a valid URL, provided by the advertiser for display purposes only.
 
  print $ad->display_url;
+
+=head3 favicon_url
+
+URL to the favicon for the advertiser.
+
+ print $ad->favicon_url;
 
 =cut
 
