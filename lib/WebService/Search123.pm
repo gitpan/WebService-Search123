@@ -29,7 +29,7 @@ Version 0.06
 
 =cut
 
-our $VERSION = '0.07';
+our $VERSION = '0.08';
 
 $VERSION = eval $VERSION;
 
@@ -46,6 +46,10 @@ Configure the call with C<new()>, supplying your account details, keywords, etc.
  foreach my $ad ( $s123->ads )
  {
     print $ad->title;
+    print $ad->description;
+    print $ad->url->as_string;   # url is a URI object
+    print $ad->display_url;      # probably not a valid URL
+    print $ad->favicon_url;      # if available
  }
 
 
