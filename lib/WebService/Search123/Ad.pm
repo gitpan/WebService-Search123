@@ -11,18 +11,26 @@ WebService::Search123::Ad - Models the advert responses from search123.
 
 =cut
 
-has  title        => ( is => 'rw', isa => 'Str',                                           );
-has  description  => ( is => 'rw', isa => 'Str',                                           );
-has _url          => ( is => 'rw', isa => 'Str',                                           );
-has  url          => ( is => 'rw', isa => 'Maybe[URI]', lazy => 1, builder => '_build_url' );
-has  display_url  => ( is => 'rw', isa => 'Str',                                           );
-has  favicon_url  => ( is => 'rw', isa => 'Str',                                           );
+has  title        => ( is => 'rw', isa => 'Str',                                                   );
+has  description  => ( is => 'rw', isa => 'Str',                                                   );
+has _url          => ( is => 'rw', isa => 'Str',                                                   );
+has  url          => ( is => 'rw', isa => 'Maybe[URI]', lazy => 1, builder => '_build_url'         );
+has  display_url  => ( is => 'rw', isa => 'Str',                                                   );
+has _favicon_url  => ( is => 'rw', isa => 'Str',                                                   );
+has  favicon_url  => ( is => 'rw', isa => 'Maybe[URI]', lazy => 1, builder => '_build_favicon_url' );
 
 sub _build_url
 {
     my ($self) = @_;
 
     return $self->_url ? URI->new( $self->_url ) : undef;
+}
+
+sub _build_favicon_url
+{
+    my ($self) = @_;
+
+    return $self->_favicon_url ? URI->new( $self->_favicon_url ) : undef;
 }
 
 =head1 SYNOPSIS

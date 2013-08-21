@@ -29,7 +29,7 @@ Version 0.06
 
 =cut
 
-our $VERSION = '0.08';
+our $VERSION = '0.09';
 
 $VERSION = eval $VERSION;
 
@@ -47,9 +47,9 @@ Configure the call with C<new()>, supplying your account details, keywords, etc.
  {
     print $ad->title;
     print $ad->description;
-    print $ad->url->as_string;   # url is a URI object
-    print $ad->display_url;      # probably not a valid URL
-    print $ad->favicon_url;      # if available
+    print $ad->url->as_string;           # url is a URI object
+    print $ad->display_url;              # probably not a valid URL
+    print $ad->favicon_url->as_string;   # if available
  }
 
 
@@ -294,7 +294,7 @@ sub _build__ads
                  display_url  => $node->findvalue('SITE_URL'),
             );
 
-            $ad->favicon_url( $node->findvalue('FAVICON_URL') ) if $node->findvalue('FAVICON_URL');
+            $ad->_favicon_url( $node->findvalue('FAVICON_URL') ) if $node->findvalue('FAVICON_URL');
 
             push @ads, $ad;
         }
